@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.generation.blogpessoal.model.Usuario;
+import com.generation.blogpessoal.model.UsuarioLogin;
 import com.generation.blogpessoal.repository.UsuarioRepository;
 import com.generation.blogpessoal.service.UsuarioService;
 import com.generation.blogpessoal.util.TestBuilder;
@@ -120,6 +121,38 @@ public class UsuarioControllerTest {
 		//Then
 		assertEquals(HttpStatus.OK, resposta.getStatusCode());
 		assertNotNull(resposta.getBody());
+	}
+	
+	@Test
+	@DisplayName("✔ Deve listar um usuário específico por id")
+	public void deveListarUmUsuarioPorId() {
+		var usuario = usuarioService.cadastrarUsuario(TestBuilder.criarUsuario(null, "Janete Lima", "jany@email.com.br", "12345678"));
+		
+		var id = usuario.get().getId();
+		
+		ResponseEntity<Usuario> resposta = testRestTemplate
+				.withBasicAuth(USUARIO_ROOT_EMAIL, USUARIO_ROOT_SENHA)
+				.exchange(BASE_URL_USUARIOS + "/" + id, HttpMethod.GET, null, Usuario.class);
+		
+		assertEquals(HttpStatus.OK, resposta.getStatusCode());
+		assertNotNull(resposta.getBody());
+	}
+	
+	@Test
+	@DisplayName("✔ Deve authenticar um usuário com sucesso")
+	public void deveAuthenticarUmUsuario() {
+		
+		usuarioService.cadastrarUsuario(TestBuilder.criarUsuario(null, "Sérgio Henrique", "serginho@email.com.br", "12345678"));
+		
+		UsuarioLogin usuarioLogin = TestBuilder.criarUsuarioLogin("serginho@email.com.br", "12345678");
+		HttpEntity<UsuarioLogin> requisicao = new HttpEntity<>(usuarioLogin);
+		
+		ResponseEntity<UsuarioLogin> resposta = testRestTemplate.exchange(
+				BASE_URL_USUARIOS + "/logar", HttpMethod.POST, requisicao, UsuarioLogin.class);
+		
+		assertEquals(HttpStatus.OK, resposta.getStatusCode());
+		assertEquals("Sérgio Henrique", resposta.getBody().getNome());
+		assertEquals("serginho@email.com.br", resposta.getBody().getUsuario());
 	}
 
 }
