@@ -21,6 +21,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		
+		if (username == null || username.trim().isEmpty())
+			throw new UsernameNotFoundException("Usuário (e-mail) não pode ser vazio");
 
 		Optional<Usuario> usuario = usuarioRepository.findByUsuario(username);
 
